@@ -1,4 +1,5 @@
 import plotly.express as px
+import plotly.graph_objects as go
 import pandas as pd
 
 _LAYOUT_BASE = dict(
@@ -8,7 +9,6 @@ _LAYOUT_BASE = dict(
     margin=dict(l=10, r=10, t=30, b=10),
 )
 
-# Sectors considered public management
 _PUBLIC_SECTORS = {
     "Provincial", "Municipal", "FFAA/Seguridad",
     "Servicio Penitenciario Provincial", "Servicio Penitenciario Federal",
@@ -26,11 +26,13 @@ def build_centers_by_dept_chart(df_centers):
         y="Departamento",
         x="Cantidad",
         orientation="h",
-        color_discrete_sequence=["#6366f1"],
+        color="Cantidad",
+        color_continuous_scale=["#4f46e5", "#818cf8", "#f97316"],
     )
     fig.update_layout(
         **_LAYOUT_BASE,
         height=520,
+        coloraxis_showscale=False,
         xaxis=dict(showgrid=True, gridcolor="#27272a", color="#71717a"),
         yaxis=dict(showgrid=False, color="#a1a1aa"),
     )
@@ -38,7 +40,6 @@ def build_centers_by_dept_chart(df_centers):
 
 
 def build_sector_donut_chart(df_centers):
-    """Donut: Público vs. Privado (grouped from all financing categories)."""
     df = df_centers.copy()
     df["Gestión"] = df["origen_financiamiento"].apply(
         lambda s: "Pública" if s in _PUBLIC_SECTORS else "Privada"
@@ -73,29 +74,31 @@ def build_sector_donut_chart(df_centers):
 
 
 def build_financing_breakdown_chart(df_centers):
-    """Horizontal bar chart: full breakdown by financing origin, sorted by count."""
     counts = df_centers["origen_financiamiento"].value_counts().reset_index()
     counts.columns = ["Sector", "Cantidad"]
-    counts = counts.sort_values("Cantidad", ascending=True)
 
-    fig = px.bar(
+    fig = px.treemap(
         counts,
-        y="Sector",
-        x="Cantidad",
-        orientation="h",
-        color_discrete_sequence=["#818cf8"],
+        path=[px.Constant("Financiamiento"), "Sector"],
+        values="Cantidad",
+        color="Cantidad",
+        color_continuous_scale=["#1e1b2e", "#4f46e5", "#818cf8"],
     )
     fig.update_layout(
         **_LAYOUT_BASE,
         height=400,
-        xaxis=dict(showgrid=True, gridcolor="#27272a", color="#71717a"),
-        yaxis=dict(showgrid=False, color="#a1a1aa"),
+        coloraxis_showscale=False,
+    )
+    fig.update_traces(
+        textfont=dict(color="#f4f4f5", size=13),
+        marker_line_color="#0c0c0e",
+        marker_line_width=2,
+        hovertemplate="<b>%{label}</b><br>Cantidad: %{value}<extra></extra>",
     )
     return fig
 
 
 def build_centers_per_capita_chart(df_centers, population_data):
-    # Normalize to uppercase to match CSV values (e.g. "CAPITAL") against dict keys ("Capital")
     counts = df_centers["departamento_nombre"].str.upper().value_counts().to_dict()
 
     data = []
@@ -106,17 +109,50 @@ def build_centers_per_capita_chart(df_centers, population_data):
 
     df_rate = pd.DataFrame(data).sort_values(by="Centros por 10k Hab", ascending=True)
 
-    fig = px.bar(
-        df_rate,
-        y="Departamento",
-        x="Centros por 10k Hab",
-        orientation="h",
-        color_discrete_sequence=["#6366f1"],
-    )
+    fig = go.Figure()
+
+    for _, row in df_rate.iterrows():
+        fig.add_shape(
+            type="line",
+            x0=0,
+            x1=row["Centros por 10k Hab"],
+            y0=row["Departamento"],
+            y1=row["Departamento"],
+            line=dict(color="#4f46e5", width=2),
+        )
+
+    min_val = df_rate["Centros por 10k Hab"].min()
+    max_val = df_rate["Centros por 10k Hab"].max()
+    norm = (df_rate["Centros por 10k Hab"] - min_val) / (max_val - min_val + 1e-9)
+    dot_colors = [
+        f"rgb({int(99 + (249 - 99) * n)}, {int(102 + (115 - 102) * n)}, {int(241 + (22 - 241) * n)})"
+        for n in norm
+    ]
+
+    fig.add_trace(go.Scatter(
+        x=df_rate["Centros por 10k Hab"],
+        y=df_rate["Departamento"],
+        mode="markers",
+        marker=dict(
+            color=dot_colors,
+            size=12,
+            line=dict(color="rgba(255,255,255,0.15)", width=1),
+        ),
+        hovertemplate="%{y}: <b>%{x:.2f}</b> centros por 10k hab<extra></extra>",
+    ))
+
     fig.update_layout(
         **_LAYOUT_BASE,
         height=520,
-        xaxis=dict(showgrid=True, gridcolor="#27272a", color="#71717a"),
+        xaxis=dict(
+            showgrid=True,
+            gridcolor="#27272a",
+            color="#71717a",
+            title="Centros por 10k Hab",
+            zeroline=True,
+            zerolinecolor="#27272a",
+        ),
         yaxis=dict(showgrid=False, color="#a1a1aa"),
+        showlegend=False,
     )
     return fig
