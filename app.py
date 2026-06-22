@@ -73,6 +73,11 @@ st.markdown("""
 
     hr { border-color: #27272a !important; margin: 1.5rem 0 !important; }
 
+    header[data-testid="stHeader"] {
+        background-color: #0c0c0e !important;
+        border-bottom: 1px solid #222228 !important;
+    }
+
     .block-container {
         max-width: 1200px !important;
         margin-left: auto !important;

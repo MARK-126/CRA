@@ -5,17 +5,18 @@ from folium.plugins import MarkerCluster
 def build_map(df_centers, gdf_deps, buffer_radius_km=0.0):
     m = folium.Map(location=[-34.0, -68.5], zoom_start=7, tiles="cartodbdark_matter")
 
-    folium.GeoJson(
-        gdf_deps,
-        style_function=lambda x: {
-            "fillColor": "#6366f1",
-            "color": "#818cf8",
-            "weight": 1.5,
-            "fillOpacity": 0.08,
-        },
-        highlight_function=lambda x: {"fillOpacity": 0.25, "weight": 2.5},
-        tooltip=folium.GeoJsonTooltip(fields=["nombre"], aliases=["Departamento:"]),
-    ).add_to(m)
+    if not gdf_deps.empty:
+        folium.GeoJson(
+            gdf_deps,
+            style_function=lambda x: {
+                "fillColor": "#6366f1",
+                "color": "#818cf8",
+                "weight": 1.5,
+                "fillOpacity": 0.08,
+            },
+            highlight_function=lambda x: {"fillOpacity": 0.25, "weight": 2.5},
+            tooltip=folium.GeoJsonTooltip(fields=["nombre"], aliases=["Departamento:"]),
+        ).add_to(m)
 
     marker_cluster = MarkerCluster(
         options={"showCoverageOnHover": False, "spiderfyOnMaxZoom": True}
