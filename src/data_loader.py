@@ -30,12 +30,16 @@ POPULATION_DATA = {
 }
 
 def get_data_dir():
+    """Devuelve la ruta al directorio de datos."""
+    
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     data_dir = os.path.join(base_dir, "data")
     os.makedirs(data_dir, exist_ok=True)
     return data_dir
 
 def load_departments():
+    """Carga los departamentos de la provincia de Mendoza desde el GeoJSON."""
+
     data_dir = get_data_dir()
     local_path = os.path.join(data_dir, "mendoza_departments.geojson")
     
@@ -53,6 +57,8 @@ def load_departments():
     return gdf
 
 def load_health_centers():
+    """Carga los centros de salud de la provincia de Mendoza desde el CSV."""
+
     data_dir = get_data_dir()
     local_path = os.path.join(data_dir, "mendoza_health_centers.csv")
     

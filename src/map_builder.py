@@ -3,6 +3,18 @@ import geopandas as gpd
 from folium.plugins import MarkerCluster
 
 def build_map(df_centers, gdf_deps, buffer_radius_km=0.0):
+    """
+    Genera un mapa interactivo de Folium con centros de salud y polígonos departamentales.
+    
+    Args:
+        df_centers (pd.DataFrame): DataFrame con datos de centros de salud.
+        gdf_deps (gpd.GeoDataFrame): GeoDataFrame con polígonos departamentales.
+        buffer_radius_km (float): Radio en kilómetros para buffers alrededor de centros (0.0 para desactivar).
+    
+    Returns:
+        folium.Map: Objeto de mapa Folium renderizado.
+    """
+    
     m = folium.Map(location=[-34.0, -68.5], zoom_start=7, tiles="cartodbpositron")
     
     style_function = lambda x: {

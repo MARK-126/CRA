@@ -54,6 +54,7 @@ st.markdown("""
 
 @st.cache_data
 def get_cached_data():
+    """Carga los datos de forma cacheada para mejorar el rendimiento."""
     gdf_deps = load_departments()
     df_centers = load_health_centers()
     return gdf_deps, df_centers
@@ -183,6 +184,7 @@ elif page == "Mapa e Interactividad":
     )
 
 elif page == "Estadísticas y Conclusiones":
+    
     st.title("Análisis Estadístico y Diagnóstico")
     
     tab1, tab2 = st.tabs(["Gráficos de Distribución", "Diagnóstico y Conclusiones"])
