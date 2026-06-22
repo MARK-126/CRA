@@ -81,128 +81,157 @@ df_mendoza = df_mendoza.dropna(subset=["longitud", "latitud"])
 
 ## 3. Sistema de Diseño e Identidad Visual (CSS & Config)
 
-El proyecto implementa una identidad visual basada en el diseño minimalista de tema oscuro (*dark-mode*) con acentos de color verde turquesa y esmeralda. Esto se logra combinando la configuración de Streamlit con inyección de CSS.
+El proyecto implementa una identidad visual basada en el diseño minimalista de tema oscuro (*dark-mode*) con acentos de color índigo y naranja. Esto se logra combinando la configuración de Streamlit con inyección de CSS avanzada directamente en el DOM.
 
-### 3.1 Variables del Tema (`.streamlit/config.toml`)
-```toml
-[theme]
-primaryColor = "#0f766e"          # Verde esmeralda (usado en sliders y botones activos)
-backgroundColor = "#042f2e"       # Fondo ultra oscuro (verde petróleo oscuro)
-secondaryBackgroundColor = "#115e59" # Fondo secundario para barras y cajas de métricas
-textColor = "#ccfbf1"             # Texto mint claro (alto contraste sobre fondo oscuro)
-font = "sans serif"
-```
-Este archivo de configuración de Streamlit define las variables CSS principales del tema a nivel del framework. No obstante, ciertos elementos (como las métricas de KPI y las alertas) requieren estilos específicos que Streamlit no permite modificar de forma nativa.
+### Paleta de Colores
 
-### 3.2 Inyección de CSS Avanzada (`app.py`)
-Para lograr una estética de calidad de producción y un efecto premium, inyectamos estilos CSS en el DOM a través de selectores internos de Streamlit:
+| Rol | Color | Hex |
+|---|---|---|
+| Fondo principal | Negro profundo | `#0c0c0e` |
+| Fondo sidebar | Negro azulado | `#111114` |
+| Acento primario | Índigo | `#6366f1` |
+| Acento secundario | Índigo claro | `#818cf8` |
+| Acento de datos | Naranja | `#f97316` |
+| Texto principal | Blanco frío | `#f4f4f5` |
+| Texto secundario | Gris medio | `#a1a1aa` |
+| Bordes | Gris oscuro | `#27272a` |
+
+### 3.1 Inyección de CSS Avanzada (`app.py`)
+
+Todos los estilos se inyectan mediante `st.markdown(..., unsafe_allow_html=True)`. Este bloque centraliza toda la identidad visual de la aplicación.
 
 ```html
 <style>
-    /* Ajuste de márgenes del contenedor principal de Streamlit */
-    .reportview-container .main .block-container {
-        padding-top: 2rem;
-        padding-bottom: 2rem;
-        padding-left: 5rem;
-        padding-right: 5rem;
+    /* Fondo global de la app */
+    .stApp { background-color: #0c0c0e; }
+
+    /* Header nativo de Streamlit - fondo unificado con el resto */
+    header[data-testid="stHeader"] {
+        background-color: #0c0c0e !important;
+        border-bottom: 1px solid #222228 !important;
     }
-    
-    /* Caja contenedora de las métricas st.metric */
-    div[data-testid="metric-container"] {
-        background-color: #115e59;
-        border-radius: 12px;
-        padding: 20px;
-        border: 1px solid #0f766e;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+
+    /* Sidebar */
+    section[data-testid="stSidebar"] {
+        background-color: #111114 !important;
+        border-right: 1px solid #222228 !important;
     }
-    
-    /* Personalización del valor de la métrica (número grande) */
-    div[data-testid="stMetricValue"] {
-        font-size: 32px;
-        font-weight: 600;
-        color: #ccfbf1;
+
+    /* Métricas KPI - alta especificidad para superar los estilos de Streamlit */
+    .stApp div[data-testid="stMetricValue"],
+    .stApp div[data-testid="stMetricValue"] * {
+        font-size: 1.8rem !important;
+        font-weight: 800 !important;
+        color: #f97316 !important;   /* naranja para destacar el dato */
     }
-    
-    /* Personalización de la etiqueta de la métrica (texto pequeño superior) */
-    div[data-testid="stMetricLabel"] {
-        font-size: 14px;
-        color: #99f6e4;
-        font-weight: 500;
-        margin-bottom: 8px;
-    }
-    
-    /* Forzado de color en encabezados para mantener la cohesión cromática */
-    h1, h2, h3 {
-        color: #ccfbf1 !important;
-        font-weight: 600 !important;
-    }
-    
-    /* Estilización de banners informativos (st.info, st.warning, etc) */
-    .stAlert {
-        background-color: #115e59 !important;
-        color: #ccfbf1 !important;
-        border: 1px solid #0f766e !important;
+
+    /* Contenedor de ancho máximo centrado */
+    .block-container {
+        max-width: 1200px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        padding-left: 2rem !important;
+        padding-right: 2rem !important;
     }
 </style>
 ```
 
-#### Explicación de los Selectores CSS inyectados:
-- **`div[data-testid="metric-container"]`:** Apunta al contenedor HTML interno de Streamlit para el widget `st.metric`. Al asignarle un fondo sólido `#115e59` ligeramente más claro que el fondo general (`#042f2e`), bordes redondeados (`border-radius: 12px`) y una sombra suave, se emula el patrón de diseño de **tarjetas aisladas** (Dashboard Cards).
-- **`div[data-testid="stMetricValue"]` y `div[data-testid="stMetricLabel"]`:** Separan visualmente el dato cuantitativo de su etiqueta descriptiva mediante escala tipográfica (32px vs 14px) y contraste cromático.
-- **`.stAlert`:** Estiliza las cajas de alerta nativas de Streamlit, reemplazando sus colores predeterminados (amarillo, azul o rojo estridente) por tonos que armonicen con el esquema de la aplicación.
+#### Decisiones de diseño relevantes
+
+**Header unificado:** El header nativo de Streamlit (barra superior con botón Deploy) utiliza por defecto un color teal que rompe con el fondo oscuro de la aplicación. Al sobreescribir `background-color` con `#0c0c0e` y agregar un borde inferior sutil (`#222228`), el header se funde visualmente con el contenido sin desaparecer por completo. El botón `>>` de la sidebar mantiene su propio estilo y sigue siendo accesible.
+
+**Alta especificidad en métricas:** Streamlit inyecta sus propias reglas CSS después del bloque de estilos del usuario, lo que provoca que reglas con la misma especificidad sean sobreescritas. Para forzar el color naranja en los valores de `st.metric`, se utiliza el prefijo `.stApp` (agrega una clase extra al selector) junto con un selector comodín `*` para cubrir elementos hijos. Esto eleva la especificidad por encima de las reglas internas de Streamlit.
+
+**Contenedor de 1200px:** Con `layout="wide"`, Streamlit extiende el contenido al ancho completo del viewport. En monitores grandes, esto genera separaciones excesivas entre columnas. La regla `max-width: 1200px` sobre `.block-container` limita y centra el contenido en todos los breakpoints sin necesitar columnas de relleno artificiales.
+
+**Título de la hero section como `<div>`:** El elemento `<h1>` de HTML está sujeto a las reglas de Streamlit (`font-size !important`) que no pueden ser sobreescritas ni siquiera con inline styles. Para lograr el tamaño de fuente deseado (`4.5rem`) con gradiente CSS, el título se implementa como un `<div>` estilado manualmente, evitando la colisión de especificidad.
 
 ---
 
 ## 4. Visualización Estadística (`src/charts.py`)
 
-El módulo `charts.py` implementa visualizaciones dinámicas de alto rendimiento utilizando **Plotly Express** y personalizando la capa de presentación a través de **Plotly Graph Objects**.
+El módulo `charts.py` implementa cuatro visualizaciones con **Plotly Express** y **Plotly Graph Objects**. Todas comparten el diccionario `_LAYOUT_BASE` que garantiza fondos transparentes, tipografía gris y márgenes compactos homogéneos.
 
-### 4.1 Gráfico 1: Distribución Absoluta de Centros por Departamento (`build_centers_by_dept_chart`)
-Muestra el volumen bruto de efectores de salud por unidad administrativa.
+```python
+_LAYOUT_BASE = dict(
+    paper_bgcolor="rgba(0,0,0,0)",
+    plot_bgcolor="rgba(0,0,0,0)",
+    font=dict(color="#a1a1aa", family="sans-serif"),
+    margin=dict(l=10, r=10, t=30, b=10),
+)
+```
 
-- **Creación y lógica de ordenamiento:**
-  ```python
-  counts = df_centers["departamento_nombre"].value_counts().reset_index()
-  counts.columns = ["Departamento", "Cantidad"]
-  counts = counts.sort_values(by="Cantidad", ascending=True)
-  ```
-  Al realizar un `value_counts()` y luego ordenar ascendentemente por la cantidad, logramos que los departamentos con mayor cantidad de centros se sitúen en la parte superior del gráfico al renderizarse de abajo hacia arriba en una orientación horizontal.
-- **Justificación de la Orientación Horizontal (`orientation="h"`):**
-  Los nombres de los departamentos de Mendoza (ej. *General Alvear*, *Luján de Cuyo*) son extensos. Un gráfico de barras verticales obligaría a rotar las etiquetas de texto a 45 o 90 grados, dificultando la lectura. La orientación horizontal mantiene las etiquetas perfectamente alineadas para una lectura rápida.
-- **Estilización e Integración al Tema Oscuro:**
-  ```python
-  fig.update_layout(
-      paper_bgcolor="rgba(0,0,0,0)",
-      plot_bgcolor="rgba(0,0,0,0)",
-      font=dict(color="#ccfbf1"),
-      margin=dict(l=10, r=10, t=30, b=10),
-      xaxis=dict(showgrid=True, gridcolor="#115e59"),
-      yaxis=dict(showgrid=False)
-  )
-  ```
-  - **`rgba(0,0,0,0)`:** Define los fondos del lienzo como transparentes, dejando ver el fondo de la interfaz del contenedor Streamlit.
-  - **`gridcolor="#115e59"`:** Pinta las líneas de cuadrícula verticales con el color de contraste secundario del tema. Se desactiva la cuadrícula del eje Y (`showgrid=False`) para limpiar el gráfico, dejando únicamente las líneas de referencia numérica del eje X.
+### 4.1 Barras con Gradiente por Departamento (`build_centers_by_dept_chart`)
 
-### 4.2 Gráfico 2: Proporción Público/Privado (`build_sector_distribution_chart`)
-Una gráfica circular del tipo Donut para entender el origen de los recursos económicos de los efectores.
+Muestra el volumen bruto de efectores por unidad administrativa usando una escala de color continua que mapea la cantidad al eje cromático.
 
-- **Diseño del Gráfico Donut (`hole=0.4`):**
-  Un gráfico circular tradicional (pie chart) suele ser difícil de leer y saturar la vista. Al añadir un hueco en el centro (`hole=0.4`), el área de visualización se desplaza hacia la periferia, facilitando la comparación de longitudes de arco.
-- **Paleta de Colores Exclusiva:**
-  Se restringe la paleta a `["#0f766e", "#0d9488"]` (tonos de turquesa controlados). Esto previene el "efecto arcoíris" de los gráficos predeterminados, manteniendo la sobriedad técnica del cuadro de mando.
-- **Ubicación de Etiquetas (`textinfo="percent+label"`):**
-  Muestra tanto el porcentaje como la categoría directamente sobre la porción del gráfico, reduciendo la fatiga cognitiva del usuario al evitar que tenga que desviar la mirada hacia una leyenda externa.
+```python
+fig = px.bar(
+    counts,
+    y="Departamento", x="Cantidad", orientation="h",
+    color="Cantidad",
+    color_continuous_scale=["#4f46e5", "#818cf8", "#f97316"],
+)
+fig.update_layout(coloraxis_showscale=False, ...)
+```
 
-### 4.3 Gráfico 3: Tasa de Cobertura Relativa Per Cápita (`build_centers_per_capita_chart`)
-Este gráfico cruza el total de centros con la población proyectada por departamento.
+- **Gradiente cromático:** Al asignar `color="Cantidad"` con la escala `["#4f46e5", "#818cf8", "#f97316"]`, los departamentos con mayor concentración de centros muestran barras en naranja intenso, mientras que los de menor concentración aparecen en índigo oscuro. Esto agrega una dimensión visual adicional al gráfico sin aumentar su complejidad.
+- **`coloraxis_showscale=False`:** Oculta la barra de color lateral (colorbar) para no saturar el layout. La información ya se lee en el eje X.
+- **Orientación horizontal:** Los nombres de departamentos de Mendoza son extensos (ej. *Luján de Cuyo*). La orientación `"h"` evita rotar etiquetas y mantiene la lectura fluida de arriba hacia abajo.
 
-- **Cálculo de Tasa Normalizada:**
-  ```python
-  rate = (count / pop) * 10000
-  ```
-  La simple cuenta absoluta de centros de salud presenta un sesgo demográfico (el Gran Mendoza concentra más centros simplemente porque tiene más población). Al calcular los centros de salud por cada 10.000 habitantes, normalizamos la variable y obtenemos un indicador de equidad territorial.
-- **Revelación Crítica de los Datos:**
-  El gráfico muestra que departamentos periféricos como **La Paz** o **Santa Rosa**, con muy baja población, poseen tasas de centros por habitante muy elevadas (superior a 8 centros/10k hab). Sin embargo, esto es un contra-balance para compensar la enorme extensión territorial y dispersión geográfica que sufren sus habitantes, mientras que departamentos densamente poblados de la urbe metropolitana como **Guaymallén** presentan tasas menores a 1 centro/10k hab debido a la concentración poblacional.
+### 4.2 Donut Público vs. Privado (`build_sector_donut_chart`)
+
+Clasifica todos los establecimientos en dos categorías (Pública / Privada) a partir del conjunto `_PUBLIC_SECTORS` y los visualiza como gráfico de dona.
+
+- **`hole=0.58`:** Un hueco amplio desplaza el área hacia los arcos exteriores, facilitando la comparación perceptual. Los gráficos de torta sin hueco son propensos a distorsiones ópticas.
+- **`textinfo="percent+label"` / `textposition="inside"`:** Las etiquetas se renderizan directamente sobre cada porción, eliminando la necesidad de mirar hacia una leyenda separada.
+- **Paleta bicolor controlada `["#6366f1", "#f59e0b"]`:** Índigo para lo privado, ámbar para lo público. Dos colores bien diferenciados en valor de luminancia, accesibles para la mayoría de las formas de daltonismo.
+
+### 4.3 Treemap de Financiamiento (`build_financing_breakdown_chart`)
+
+Reemplaza el anterior gráfico de barras por un treemap jerárquico que muestra cada origen de financiamiento como un rectángulo cuya área es proporcional a su cantidad.
+
+```python
+fig = px.treemap(
+    counts,
+    path=[px.Constant("Financiamiento"), "Sector"],
+    values="Cantidad",
+    color="Cantidad",
+    color_continuous_scale=["#1e1b2e", "#4f46e5", "#818cf8"],
+)
+fig.update_traces(
+    marker_line_color="#0c0c0e",
+    marker_line_width=2,
+)
+```
+
+- **`px.Constant("Financiamiento")`:** Agrega un nodo raíz invisible que permite a Plotly construir la jerarquía de dos niveles correctamente, aun cuando solo existe una dimensión categórica real (el Sector).
+- **Bordes oscuros (`marker_line_color="#0c0c0e"`):** Un borde del color del fondo de la app crea separación visual limpia entre celdas sin agregar ruido gráfico.
+- **Ventaja sobre el bar chart:** Con 13 categorías de financiamiento, un gráfico de barras horizontales generaba mucho espacio vacío. El treemap compacta la información y permite percibir de un vistazo cuáles categorías son marginales (celdas pequeñas) versus dominantes (celdas grandes).
+
+### 4.4 Lollipop per Cápita (`build_centers_per_capita_chart`)
+
+Sustituye el anterior gráfico de barras por un *lollipop chart* construido manualmente con `plotly.graph_objects`.
+
+```python
+# Stems: líneas horizontales desde 0 hasta el valor
+for _, row in df_rate.iterrows():
+    fig.add_shape(type="line", x0=0, x1=row["Centros por 10k Hab"],
+                  y0=row["Departamento"], y1=row["Departamento"],
+                  line=dict(color="#4f46e5", width=2))
+
+# Dots: scatter con color interpolado por valor
+fig.add_trace(go.Scatter(
+    x=df_rate["Centros por 10k Hab"],
+    y=df_rate["Departamento"],
+    mode="markers",
+    marker=dict(color=dot_colors, size=12),
+))
+```
+
+- **Interpolación de color en los puntos:** La normalización `(valor - min) / (max - min)` mapea cada tasa al rango `[0, 1]`, y luego se interpola linealmente entre `rgb(99, 102, 241)` (índigo) y `rgb(249, 115, 22)` (naranja). El departamento con la mayor tasa siempre muestra el punto más naranja.
+- **`add_shape` vs `go.Bar` para los stems:** `add_shape` dibuja formas vectoriales nativas del lienzo (no trazas), lo que evita el overhead de serialización JSON de una traza completa de barras y produce líneas más delgadas y precisas.
+- **Justificación analítica:** La tasa normalizada por habitante corrige el sesgo demográfico. Capital tiene 650+ centros pero una tasa media debido a su alta densidad poblacional; La Paz tiene pocos centros en términos absolutos pero la tasa más alta por habitante por su bajísima densidad y extensión geográfica.
 
 ---
 
@@ -214,21 +243,21 @@ La capa cartográfica utiliza Folium, inyectando capas geoespaciales y comportam
 La API de Georef entrega las geometrías de los departamentos como polígonos de coordenadas (anillo exterior). Se cargan y estilizan dinámicamente:
 
 ```python
-style_function = lambda x: {
-    "fillColor": "#115e59",    # Relleno interno
-    "color": "#0f766e",        # Línea de frontera
-    "weight": 1.5,             # Grosor de la línea
-    "fillOpacity": 0.15        # Transparencia
-}
-
-folium.GeoJson(
-    gdf_deps,
-    style_function=style_function,
-    highlight_function=lambda x: {"fillOpacity": 0.35, "weight": 2.5},
-    tooltip=folium.GeoJsonTooltip(fields=["nombre"], aliases=["Departamento:"])
-).add_to(m)
+if not gdf_deps.empty:
+    folium.GeoJson(
+        gdf_deps,
+        style_function=lambda x: {
+            "fillColor": "#6366f1",
+            "color": "#818cf8",
+            "weight": 1.5,
+            "fillOpacity": 0.08,
+        },
+        highlight_function=lambda x: {"fillOpacity": 0.25, "weight": 2.5},
+        tooltip=folium.GeoJsonTooltip(fields=["nombre"], aliases=["Departamento:"]),
+    ).add_to(m)
 ```
-- **`highlight_function`:** Modifica dinámicamente las propiedades del polígono al pasar el mouse por encima (*hover*). Eleva la opacidad de relleno a `0.35` y el grosor a `2.5`, proveyendo retroalimentación visual al usuario en tiempo real.
+- **Guard `if not gdf_deps.empty`:** Cuando el usuario filtra por departamentos en el sidebar, `gdf_deps` se filtra con boolean indexing. Si el nombre del departamento en `df_centers` no coincide exactamente con el campo `"nombre"` del GeoDataFrame de Georef, el resultado es un GeoDataFrame vacío. Folium's `GeoJsonTooltip` valida los campos contra las propiedades del primer feature del GeoJSON; con cero features, lanza `AssertionError`. El guard evita añadir la capa cuando no hay geometrías que renderizar.
+- **`highlight_function`:** Modifica dinámicamente las propiedades del polígono al pasar el mouse por encima (*hover*). Eleva la opacidad de relleno a `0.25` y el grosor a `2.5`, proveyendo retroalimentación visual al usuario en tiempo real.
 - **`GeoJsonTooltip`:** Vincula metadatos del GeoJSON directamente a un cartel emergente rápido en el mapa.
 
 ### 5.2 Rendimiento de Marcadores Masivos: Marker Clustering
@@ -248,11 +277,11 @@ Para romper con la estética básica de los popups de Leaflet, se inyecta una es
 
 ```python
 popup_html = f"""
-<div style="font-family: sans-serif; color: #042f2e; font-size: 12px; line-height: 1.4; padding: 5px;">
-    <b style="color: #0f766e; font-size: 13px;">{name}</b><br><br>
-    <b>Tipo:</b> {tipology}<br>
+<div style="font-family: sans-serif; font-size: 12px; line-height: 1.6; padding: 6px; min-width: 200px;">
+    <b style="color: #6366f1; font-size: 13px;">{name}</b><br><br>
+    <b>Tipo:</b> {row['tipologia_nombre']}<br>
     <b>Sector:</b> {sector}<br>
-    <b>Dirección:</b> {address}
+    <b>Dirección:</b> {row['domicilio']}
 </div>
 """
 ```
@@ -264,11 +293,11 @@ if buffer_radius_km > 0.0:
     folium.Circle(
         location=[lat, lon],
         radius=float(buffer_radius_km) * 1000,
-        color="#0f766e",
+        color="#6366f1",
         weight=1,
         fill=True,
-        fill_color="#0f766e",
-        fill_opacity=0.05
+        fill_color="#6366f1",
+        fill_opacity=0.05,
     ).add_to(m)
 ```
 - **El Algoritmo:** Para cada efector, si el radio provisto por el slider de Streamlit es mayor a cero, se traza un círculo perfecto en la proyección geográfica. El radio ingresado en kilómetros se multiplica por 1000 ya que la API de Leaflet requiere el radio en metros métricos sobre el elipsoide terrestre.

@@ -29,9 +29,10 @@ A continuación se detalla cómo el proyecto implementa cada uno de los requerim
 
 4. **Gráficos de cantidad y análisis por departamento:**
    - Implementado en la sección **"Estadísticas y Conclusiones"** usando **Plotly**:
-     - *Cantidad absoluta:* Gráfico de barras horizontales con el volumen de centros por departamento.
-     - *Distribución por sector:* Gráfico de torta/dona interactivo con el porcentaje de establecimientos públicos frente a los privados.
-     - *Tasa de cobertura por habitante:* Gráfico que calcula la cantidad de **Centros de Salud por cada 10.000 habitantes** cruzando los datos del Censo 2022.
+     - *Cantidad absoluta:* Gráfico de barras horizontales con gradiente de color (indigo → naranja) según la cantidad de centros por departamento.
+     - *Distribución por sector:* Gráfico de dona interactivo con el porcentaje de establecimientos públicos frente a los privados.
+     - *Desglose por financiamiento:* Treemap que muestra la proporción de cada origen de financiamiento de forma jerárquica y visual.
+     - *Tasa de cobertura per cápita:* Lollipop chart que calcula la cantidad de **Centros de Salud por cada 10.000 habitantes** cruzando los datos del Censo 2022, con puntos coloreados por valor.
 
 5. **Conclusiones y Recomendaciones:**
    - La aplicación presenta un diagnóstico detallado sobre la concentración de recursos en el Gran Mendoza, los desiertos sanitarios en áreas rurales (Lavalle, Malargüe, San Carlos) y propone tres políticas públicas basadas en los resultados (Redistribución/CAPS móviles, Optimización de transporte sanitario y Telemedicina rural).
