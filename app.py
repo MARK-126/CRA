@@ -46,10 +46,11 @@ st.markdown("""
         border: 1px solid rgba(255, 255, 255, 0.08);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
-    div[data-testid="stMetricValue"] {
+    .stApp div[data-testid="stMetricValue"],
+    .stApp div[data-testid="stMetricValue"] * {
         font-size: 1.8rem !important;
         font-weight: 800 !important;
-        color: #f4f4f5 !important;
+        color: #f97316 !important;
     }
     div[data-testid="stMetricLabel"] {
         font-size: 0.85rem !important;
@@ -127,9 +128,9 @@ if page == "Inicio":
                     Proyecto Integrador · CRA 2025
                 </span>
             </div>
-            <h1 style="
-                font-size: 3.6rem !important;
-                font-weight: 850 !important;
+            <div style="
+                font-size: 4.5rem;
+                font-weight: 850;
                 background: linear-gradient(135deg, #a5b4fc 0%, #6366f1 50%, #38bdf8 100%);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
@@ -138,7 +139,7 @@ if page == "Inicio":
                 margin: 0 0 1.75rem 0;
             ">
                 Análisis<br>Territorial de<br>Centros de Salud<br>en Mendoza
-            </h1>
+            </div>
             <p style="font-size: 1rem; color: #a1a1aa; line-height: 1.8; margin: 0; max-width: 400px;">
                 Exploración geoespacial y estadística de los efectores del sistema de salud,
                 su distribución territorial y accesibilidad poblacional.
